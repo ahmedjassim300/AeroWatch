@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AeroWatch — راقب كل ما يطير فوقك</title>
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;900&family=Share+Tech+Mono&family=Orbitron:wght@700;900&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#020609;--ac:#00e5ff;--ac2:#ff2d55;--gold:#ffd200;--tx:#c8e0f0;--dim:#3a5a70;--card:#050e16;--bd:#0a2535}
+*{margin:0;padding:0;box-sizing:border-box}html{scroll-behavior:smooth}
+body{font-family:'Tajawal',sans-serif;background:var(--bg);color:var(--tx);overflow-x:hidden}
+body::before{content:'';position:fixed;inset:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");pointer-events:none;z-index:999;opacity:.5}
+.grid{position:fixed;inset:0;background-image:linear-gradient(rgba(0,229,255,.025) 1px,transparent 1px),linear-gradient(90deg,rgba(0,229,255,.025) 1px,transparent 1px);background-size:50px 50px;pointer-events:none}
+
+/* NAV */
+nav{position:fixed;top:0;left:0;right:0;z-index:900;height:60px;display:flex;align-items:center;justify-content:space-between;padding:0 6%;background:rgba(2,6,9,.9);backdrop-filter:blur(20px);border-bottom:1px solid var(--bd)}
+.logo{font-family:'Orbitron',sans-serif;font-size:16px;font-weight:900;color:#fff;letter-spacing:2px}
+.logo span{color:var(--ac)}
+.nav-links{display:flex;gap:28px;list-style:none}
+.nav-links a{color:var(--dim);font-size:13px;text-decoration:none;transition:color .2s}
+.nav-links a:hover{color:var(--ac)}
+.nav-cta{background:var(--ac);color:#000;padding:8px 22px;border-radius:4px;font-size:12px;font-weight:800;text-decoration:none;letter-spacing:1px;transition:all .2s}
+.nav-cta:hover{background:#fff}
+
+/* HERO */
+.hero{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:80px 6% 60px;position:relative;overflow:hidden}
+.radar-wrap{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);opacity:.06;pointer-events:none}
+.ring{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);border:1px solid var(--ac);border-radius:50%}
+.ring1{width:180px;height:180px}
+.ring2{width:360px;height:360px}
+.ring3{width:540px;height:540px}
+.ring4{width:720px;height:720px}
+.ring5{width:900px;height:900px}
+.sweep{position:absolute;top:50%;left:50%;width:450px;height:1px;transform-origin:left;background:linear-gradient(90deg,rgba(0,229,255,0),rgba(0,229,255,.9) 100%);animation:sw 4s linear infinite}
+@keyframes sw{to{transform:rotate(360deg)}}
+.blips{position:absolute;inset:0;pointer-events:none}
+.blip{position:absolute;width:5px;height:5px;border-radius:50%;background:var(--ac);box-shadow:0 0 8px var(--ac);animation:bp 2.5s infinite}
+@keyframes bp{0%,100%{opacity:0;transform:scale(0)}40%{opacity:1;transform:scale(1)}70%{opacity:.4}}
+
+.hero-inner{position:relative;z-index:5;text-align:center;max-width:780px}
+.pill{display:inline-flex;align-items:center;gap:7px;background:rgba(0,229,255,.07);border:1px solid rgba(0,229,255,.2);padding:5px 16px;border-radius:20px;font-size:11px;color:var(--ac);letter-spacing:2px;text-transform:uppercase;margin-bottom:30px}
+.pill-dot{width:5px;height:5px;border-radius:50%;background:var(--ac);animation:bp 1.5s infinite}
+h1{font-family:'Orbitron',sans-serif;font-size:clamp(32px,6vw,68px);font-weight:900;color:#fff;line-height:1.1;margin-bottom:12px}
+h1 em{color:var(--ac);font-style:normal;text-shadow:0 0 40px rgba(0,229,255,.35)}
+.sub{font-size:clamp(14px,1.8vw,17px);color:var(--dim);line-height:1.8;max-width:560px;margin:0 auto 40px}
+.btns{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
+.btn-a{background:var(--ac);color:#000;padding:13px 32px;border-radius:5px;font-size:13px;font-weight:800;text-decoration:none;letter-spacing:1px;transition:all .25s}
+.btn-a:hover{background:#fff;box-shadow:0 10px 40px rgba(0,229,255,.25)}
+.btn-b{border:1px solid rgba(0,229,255,.3);color:var(--ac);padding:13px 32px;border-radius:5px;font-size:13px;font-weight:700;text-decoration:none;transition:all .25s}
+.btn-b:hover{border-color:var(--ac);background:rgba(0,229,255,.05)}
+
+/* LIVE NUMBERS */
+.numbers{display:flex;gap:0;justify-content:center;margin-top:70px;border:1px solid var(--bd);border-radius:10px;overflow:hidden;max-width:600px;margin-left:auto;margin-right:auto;background:rgba(5,14,22,.8)}
+.num-item{flex:1;padding:20px;text-align:center;border-left:1px solid var(--bd)}
+.num-item:last-child{border:none}
+.num-val{font-family:'Orbitron',monospace;font-size:28px;font-weight:900;color:#fff}
+.num-val span{color:var(--ac)}
+.num-label{font-size:10px;color:var(--dim);text-transform:uppercase;letter-spacing:2px;margin-top:4px}
+
+/* SECTION */
+section{padding:90px 6%}
+.sec-label{font-size:10px;text-transform:uppercase;letter-spacing:4px;color:var(--ac);margin-bottom:14px}
+.sec-title{font-family:'Orbitron',sans-serif;font-size:clamp(22px,3.5vw,38px);font-weight:900;color:#fff;line-height:1.25;margin-bottom:14px}
+.sec-desc{font-size:14px;color:var(--dim);line-height:1.8}
+
+/* HOW IT WORKS */
+.how{background:linear-gradient(180deg,var(--bg) 0%,#030d15 100%)}
+.steps{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:1px;background:var(--bd);border:1px solid var(--bd);border-radius:10px;overflow:hidden;margin-top:50px}
+.step{background:var(--card);padding:32px 26px;position:relative}
+.step-n{font-family:'Orbitron',sans-serif;font-size:48px;font-weight:900;color:rgba(0,229,255,.07);line-height:1;margin-bottom:16px}
+.step-icon{font-size:28px;margin-bottom:12px;display:block}
+.step-title{font-size:15px;font-weight:700;color:#fff;margin-bottom:8px}
+.step-desc{font-size:12px;color:var(--dim);line-height:1.7}
+
+/* FEATURES */
+.feats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px;margin-top:50px}
+.feat{background:var(--card);border:1px solid var(--bd);border-radius:10px;padding:28px;transition:all .3s;position:relative;overflow:hidden}
+.feat::after{content:'';position:absolute;bottom:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--ac),transparent);opacity:0;transition:opacity .3s}
+.feat:hover{border-color:rgba(0,229,255,.2);transform:translateY(-2px)}
+.feat:hover::after{opacity:1}
+.feat-ico{font-size:28px;margin-bottom:16px}
+.feat-t{font-size:14px;font-weight:700;color:#fff;margin-bottom:8px}
+.feat-d{font-size:12px;color:var(--dim);line-height:1.7}
+.tag{display:inline-block;margin-top:12px;font-size:9px;padding:2px 9px;border-radius:3px;letter-spacing:1px;font-weight:700;text-transform:uppercase}
+.tag-blue{background:rgba(0,229,255,.1);border:1px solid rgba(0,229,255,.25);color:var(--ac)}
+.tag-red{background:rgba(255,45,85,.1);border:1px solid rgba(255,45,85,.3);color:var(--ac2)}
+.tag-gold{background:rgba(255,210,0,.1);border:1px solid rgba(255,210,0,.3);color:var(--gold)}
+
+/* SECURITY HIGHLIGHT */
+.security{background:#030d15;border-top:1px solid var(--bd);border-bottom:1px solid var(--bd)}
+.sec-split{display:grid;grid-template-columns:1fr 1fr;gap:60px;align-items:center}
+.sec-visual{background:var(--card);border:1px solid var(--bd);border-radius:10px;padding:24px;font-family:'Share Tech Mono',monospace;font-size:11px}
+.sec-vis-title{color:var(--dim);font-size:9px;letter-spacing:2px;text-transform:uppercase;margin-bottom:16px;border-bottom:1px solid var(--bd);padding-bottom:8px}
+.alert-item{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid rgba(10,37,53,.5)}
+.alert-item:last-child{border:none}
+.alert-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
+.alert-text{flex:1;font-size:11px}
+.alert-time{color:var(--dim);font-size:9px}
+.pulse{animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+.sec-list{list-style:none;margin-top:28px}
+.sec-list li{display:flex;align-items:flex-start;gap:10px;padding:10px 0;border-bottom:1px solid var(--bd);font-size:14px;color:var(--tx)}
+.sec-list li::before{content:'→';color:var(--ac);flex-shrink:0;margin-top:1px}
+
+/* PRICING */
+.pricing{background:var(--bg)}
+.price-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:16px;margin-top:50px;max-width:900px;margin-left:auto;margin-right:auto}
+.pc{background:var(--card);border:1px solid var(--bd);border-radius:10px;padding:32px 26px;position:relative;transition:all .3s}
+.pc.hot{border-color:var(--ac)}
+.pc.hot::before{content:'الأكثر طلباً';position:absolute;top:-11px;left:50%;transform:translateX(-50%);background:var(--ac);color:#000;font-size:9px;font-weight:800;padding:3px 12px;border-radius:8px;letter-spacing:1px;white-space:nowrap}
+.pc-name{font-family:'Orbitron',sans-serif;font-size:11px;color:var(--dim);letter-spacing:2px;margin-bottom:14px}
+.pc-price{font-family:'Orbitron',sans-serif;font-size:40px;font-weight:900;color:#fff;line-height:1}
+.pc-price sup{font-size:16px;color:var(--dim)}
+.pc-price sub{font-size:13px;color:var(--dim)}
+.pc-desc{font-size:12px;color:var(--dim);margin:10px 0 20px;line-height:1.6}
+.pc-feats{list-style:none;margin-bottom:24px}
+.pc-feats li{font-size:12px;padding:6px 0;border-bottom:1px solid var(--bd);display:flex;gap:7px;align-items:center;color:var(--tx)}
+.pc-feats li::before{content:'✓';color:var(--ac);font-weight:700;flex-shrink:0}
+.pc-feats li.no{color:var(--dim)}
+.pc-feats li.no::before{content:'✗';color:var(--bd)}
+.pc-btn{display:block;text-align:center;padding:11px;border-radius:5px;font-size:12px;font-weight:700;text-decoration:none;letter-spacing:.5px;transition:all .25s}
+.pc-btn.out{border:1px solid var(--bd);color:var(--dim)}
+.pc-btn.out:hover{border-color:var(--ac);color:var(--ac)}
+.pc-btn.sol{background:var(--ac);color:#000}
+.pc-btn.sol:hover{background:#fff}
+
+/* CTA */
+.cta{text-align:center;position:relative;overflow:hidden}
+.cta-glow{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:500px;height:500px;background:radial-gradient(circle,rgba(0,229,255,.05),transparent 70%);pointer-events:none}
+
+/* FOOTER */
+footer{border-top:1px solid var(--bd);padding:32px 6%;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px}
+.f-logo{font-family:'Orbitron',sans-serif;font-size:13px;font-weight:900;color:var(--dim);letter-spacing:2px}
+.f-logo span{color:var(--ac)}
+.f-links{display:flex;gap:20px}
+.f-links a{font-size:11px;color:var(--dim);text-decoration:none}
+.f-links a:hover{color:var(--ac)}
+.f-copy{font-size:10px;color:var(--dim)}
+
+/* LIVE BAR */
+.live-bar{position:fixed;bottom:0;left:0;right:0;z-index:800;height:34px;background:rgba(2,6,9,.92);border-top:1px solid var(--bd);backdrop-filter:blur(10px);display:flex;align-items:center;justify-content:center;gap:36px;font-family:'Share Tech Mono',monospace;font-size:10px}
+.lb{display:flex;align-items:center;gap:6px;color:var(--dim)}
+.lb b{color:var(--ac)}
+.lb-live{color:var(--ac2);display:flex;align-items:center;gap:4px}
+.lb-d{width:5px;height:5px;border-radius:50%;background:var(--ac2);animation:bp 1.2s infinite}
+
+/* FADE */
+.fu{opacity:0;transform:translateY(24px);transition:all .6s ease}
+.fu.vis{opacity:1;transform:translateY(0)}
+
+@media(max-width:768px){
+  .nav-links{display:none}
+  .sec-split{grid-template-columns:1fr}
+  .numbers{flex-direction:column}
+  .num-item{border:none;border-bottom:1px solid var(--bd)}
+  footer{flex-direction:column;text-align:center}
+  .live-bar{gap:14px;font-size:9px}
+}
+</style>
+</head>
+<body>
+<div class="grid"></div>
+
+<nav>
+  <div class="logo">Aero<span>Watch</span></div>
+  <ul class="nav-links">
+    <li><a href="#how">كيف يعمل</a></li>
+    <li><a href="#features">المميزات</a></li>
+    <li><a href="#pricing">الأسعار</a></li>
+  </ul>
+  <a href="app.html" class="nav-cta">جرّب مجاناً</a>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="radar-wrap">
+    <div class="ring ring1"></div><div class="ring ring2"></div><div class="ring ring3"></div><div class="ring ring4"></div><div class="ring ring5"></div>
+    <div class="sweep"></div>
+  </div>
+  <div class="blips">
+    <div class="blip" style="top:32%;left:48%;animation-delay:0s"></div>
+    <div class="blip" style="top:55%;left:62%;animation-delay:.9s"></div>
+    <div class="blip" style="top:42%;left:33%;animation-delay:1.7s"></div>
+    <div class="blip" style="top:68%;left:52%;animation-delay:2.3s"></div>
+    <div class="blip" style="top:25%;left:66%;animation-delay:.5s"></div>
+    <div class="blip" style="top:72%;left:28%;animation-delay:1.2s"></div>
+    <div class="blip" style="top:38%;left:70%;animation-delay:2.8s"></div>
+  </div>
+  <div class="hero-inner">
+    <div class="pill"><div class="pill-dot"></div>بيانات ADS-B حقيقية · الخليج والشرق الأوسط</div>
+    <h1>اعرف كل ما<br>يطير <em>فوقك</em></h1>
+    <p class="sub">راقب الطائرات في الوقت الفعلي — عسكرية، مدنية، طوارئ. تنبيهات فورية، مراقبة أمنية ذكية، تغطية كاملة للخليج العربي</p>
+    <div class="btns">
+      <a href="app.html" class="btn-a">🛰️ ابدأ المراقبة مجاناً</a>
+      <a href="#features" class="btn-b">اكتشف المميزات</a>
+    </div>
+    <div class="numbers">
+      <div class="num-item">
+        <div class="num-val"><span id="n1">—</span></div>
+        <div class="num-label">طائرة الآن</div>
+      </div>
+      <div class="num-item">
+        <div class="num-val"><span style="color:var(--ac2)">3</span></div>
+        <div class="num-label">مصادر حقيقية</div>
+      </div>
+      <div class="num-item">
+        <div class="num-val"><span>15</span><span style="font-size:14px;color:var(--dim)">ث</span></div>
+        <div class="num-label">سرعة التحديث</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- HOW -->
+<section class="how" id="how">
+  <div style="text-align:center" class="fu">
+    <div class="sec-label">كيف يعمل</div>
+    <div class="sec-title">بسيط وفوري</div>
+  </div>
+  <div class="steps fu">
+    <div class="step"><div class="step-n">01</div><span class="step-icon">🌐</span><div class="step-title">افتح المنصة</div><div class="step-desc">لا تسجيل، لا تثبيت — مباشرة من المتصفح على أي جهاز</div></div>
+    <div class="step"><div class="step-n">02</div><span class="step-icon">🗺️</span><div class="step-title">اختر منطقتك</div><div class="step-desc">الخليج، السعودية، الشرق الأوسط، أوروبا — 8 مناطق جاهزة</div></div>
+    <div class="step"><div class="step-n">03</div><span class="step-icon">✈️</span><div class="step-title">راقب لحظياً</div><div class="step-desc">كل طائرة على الخريطة بالوقت الحقيقي مع تفاصيل كاملة</div></div>
+    <div class="step"><div class="step-n">04</div><span class="step-icon">🚨</span><div class="step-title">تنبّه فوراً</div><div class="step-desc">سواء طوارئ أو طائرة محددة أو تجاوز منطقة — تنبيه فوري</div></div>
+  </div>
+</section>
+
+<!-- SECURITY -->
+<section class="security" id="security">
+  <div class="sec-split">
+    <div class="fu">
+      <div class="sec-label">الميزة الأبرز</div>
+      <div class="sec-title">مراقبة أمنية<br>ذكية</div>
+      <p class="sec-desc">النظام يحلل كل طائرة تلقائياً — يكشف الأنماط الغريبة، يتتبع squawk الطوارئ، ويعطيك تنبيهاً فورياً قبل أي أحد</p>
+      <ul class="sec-list">
+        <li>كشف squawk 7700/7600/7500 فوراً</li>
+        <li>رصد الطائرات بدون callsign — مجهولة الهوية</li>
+        <li>تنبيه عند هبوط مفاجئ أكثر من 2000 قدم/دقيقة</li>
+        <li>قائمة مراقبة ICAO خاصة بك</li>
+        <li>دائرة Geofencing — تنبّه عند دخول أي طائرة</li>
+      </ul>
+    </div>
+    <div class="fu">
+      <div class="sec-visual">
+        <div class="sec-vis-title">🔴 تنبيهات أمنية نشطة</div>
+        <div class="alert-item">
+          <div class="alert-dot pulse" style="background:var(--ac2)"></div>
+          <div class="alert-text"><span style="color:#fff;font-weight:700">EMG24</span> — <span style="color:var(--ac2)">SQUAWK 7700 طوارئ</span></div>
+          <div class="alert-time">الآن</div>
+        </div>
+        <div class="alert-item">
+          <div class="alert-dot" style="background:#ff8800"></div>
+          <div class="alert-text"><span style="color:#fff;font-weight:700">??????</span> — <span style="color:#ff8800">طائرة بدون معرّف</span></div>
+          <div class="alert-time">منذ 2د</div>
+        </div>
+        <div class="alert-item">
+          <div class="alert-dot" style="background:var(--ac)"></div>
+          <div class="alert-text"><span style="color:#fff;font-weight:700">REACH301</span> — <span style="color:var(--ac)">دخل منطقة المراقبة</span></div>
+          <div class="alert-time">منذ 4د</div>
+        </div>
+        <div class="alert-item">
+          <div class="alert-dot" style="background:var(--gold)"></div>
+          <div class="alert-text"><span style="color:#fff;font-weight:700">UAE456</span> — <span style="color:var(--gold)">هبوط سريع 3200ft/min</span></div>
+          <div class="alert-time">منذ 7د</div>
+        </div>
+        <div style="margin-top:16px;padding-top:12px;border-top:1px solid var(--bd);color:var(--dim);font-size:9px;text-align:center;letter-spacing:1px">
+          ● نظام المراقبة نشط — يتحدث كل 15 ثانية
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FEATURES -->
+<section id="features">
+  <div style="text-align:center" class="fu">
+    <div class="sec-label">المميزات</div>
+    <div class="sec-title">كل شيء في مكان واحد</div>
+  </div>
+  <div class="feats-grid fu">
+    <div class="feat"><div class="feat-ico">🛰️</div><div class="feat-t">بيانات حقيقية 100%</div><div class="feat-d">adsb.lol + adsb.fi + OpenSky — ثلاثة مصادر مع تبديل تلقائي</div><span class="tag tag-blue">حقيقي</span></div>
+    <div class="feat"><div class="feat-ico">🗺️</div><div class="feat-t">خريطة تفاعلية</div><div class="feat-d">خريطة حية مع أيقونات متحركة حسب اتجاه كل طائرة</div><span class="tag tag-blue">لحظي</span></div>
+    <div class="feat"><div class="feat-ico">⚔️</div><div class="feat-t">كشف العسكري</div><div class="feat-d">خوارزمية تحليل متقدمة تميز الطائرات العسكرية من ICAO والـ callsign</div><span class="tag tag-red">أمني</span></div>
+    <div class="feat"><div class="feat-ico">📏</div><div class="feat-t">قياس المسافة</div><div class="feat-d">اقسم المسافة بين أي طائرتين على الخريطة بكيلومترات وأميال بحرية</div><span class="tag tag-blue">جديد</span></div>
+    <div class="feat"><div class="feat-ico">🛩️</div><div class="feat-t">قاعدة الطرازات</div><div class="feat-d">اضغط أي طائرة وشاهد مواصفاتها — السرعة، المدى، السعة، المحركات</div><span class="tag tag-gold">PRO</span></div>
+    <div class="feat"><div class="feat-ico">📊</div><div class="feat-t">إحصاءات ورسوم</div><div class="feat-d">رسم بياني لحركة الطيران + أكثر الدول + تصدير CSV كامل</div><span class="tag tag-gold">PRO</span></div>
+    <div class="feat"><div class="feat-ico">🎯</div><div class="feat-t">دائرة Geofencing</div><div class="feat-d">ارسم دائرة على الخريطة وشاهد كل الطائرات داخلها فوراً</div><span class="tag tag-red">أمني</span></div>
+    <div class="feat"><div class="feat-ico">🏳️</div><div class="feat-t">أعلام الدول</div><div class="feat-d">علم كل دولة بجانب كل طائرة + مؤقت منذ متى وهي في الهواء</div><span class="tag tag-blue">جديد</span></div>
+    <div class="feat"><div class="feat-ico">📱</div><div class="feat-t">يعمل على الجوال</div><div class="feat-d">واجهة محسّنة للموبايل — اضغط وتصفح من أي مكان</div><span class="tag tag-blue">متجاوب</span></div>
+  </div>
+</section>
+
+<!-- PRICING -->
+<section class="pricing" id="pricing">
+  <div style="text-align:center" class="fu">
+    <div class="sec-label">الأسعار</div>
+    <div class="sec-title">ابدأ مجاناً</div>
+    <p style="font-size:13px;color:var(--dim);margin-top:10px">لا بطاقة ائتمان — لا تسجيل مطلوب للنسخة المجانية</p>
+  </div>
+  <div class="price-grid fu">
+    <div class="pc">
+      <div class="pc-name">مجاني</div>
+      <div class="pc-price"><sup>$</sup>0<sub>/شهر</sub></div>
+      <div class="pc-desc">لكل مهتم بالطيران — ابدأ الآن بلا قيود</div>
+      <ul class="pc-feats">
+        <li>خريطة حية بيانات حقيقية</li>
+        <li>تفاصيل كل طائرة</li>
+        <li>كشف العسكري والطوارئ</li>
+        <li>8 مناطق مراقبة</li>
+        <li class="no">قائمة مراقبة ICAO</li>
+        <li class="no">Geofencing</li>
+        <li class="no">تصدير البيانات</li>
+      </ul>
+      <a href="app.html" class="pc-btn out">ابدأ مجاناً</a>
+    </div>
+    <div class="pc hot">
+      <div class="pc-name">احترافي</div>
+      <div class="pc-price"><sup>$</sup>19<sub>/شهر</sub></div>
+      <div class="pc-desc">للمهتمين الجادين — كل الأدوات بدون حدود</div>
+      <ul class="pc-feats">
+        <li>كل ميزات المجاني</li>
+        <li>قائمة مراقبة ICAO</li>
+        <li>Geofencing وتنبيهات</li>
+        <li>قياس المسافة</li>
+        <li>تصدير CSV</li>
+        <li>إحصاءات متقدمة</li>
+      </ul>
+      <a href="#contact" class="pc-btn sol">اشترك الآن</a>
+    </div>
+    <div class="pc">
+      <div class="pc-name">مؤسسي</div>
+      <div class="pc-price"><sup>$</sup>99<sub>/شهر</sub></div>
+      <div class="pc-desc">للشركات والجهات الأمنية والباحثين</div>
+      <ul class="pc-feats">
+        <li>كل ميزات الاحترافي</li>
+        <li>API مباشر للبيانات</li>
+        <li>تنبيهات تيليغرام</li>
+        <li>تقارير PDF تلقائية</li>
+        <li>دعم فني مخصص</li>
+        <li>نشر خاص</li>
+      </ul>
+      <a href="#contact" class="pc-btn out">تواصل معنا</a>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="cta" id="contact">
+  <div class="cta-glow"></div>
+  <div style="position:relative;z-index:1" class="fu">
+    <div class="sec-label">ابدأ الآن</div>
+    <div class="sec-title">السماء مفتوحة<br>للجميع</div>
+    <p class="sec-desc" style="max-width:480px;margin:14px auto 36px;text-align:center">جرّب AeroWatch مجاناً — لا تسجيل، لا بطاقة. فقط افتح وراقب</p>
+    <div class="btns">
+      <a href="app.html" class="btn-a">🛰️ ابدأ المراقبة الآن</a>
+      <a href="/cdn-cgi/l/email-protection#2d44434b426d4c485f425a4c594e45034c5d5d" class="btn-b">📧 تواصل معنا</a>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="f-logo">Aero<span>Watch</span></div>
+  <div class="f-links">
+    <a href="#">الخصوصية</a>
+    <a href="#">الشروط</a>
+    <a href="#">الدعم</a>
+  </div>
+  <div class="f-copy">© 2025 AeroWatch. جميع الحقوق محفوظة.</div>
+</footer>
+
+<div class="live-bar">
+  <div class="lb"><div class="lb-d"></div><span class="lb-live">LIVE</span></div>
+  <div class="lb">طائرات مرصودة: <b id="lc">—</b></div>
+  <div class="lb">المنطقة: <b>الخليج العربي</b></div>
+  <div class="lb">المصدر: <b id="ls">—</b></div>
+</div>
+
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
+async function live(){
+  const srcs=[
+    {u:"https://api.adsb.lol/v2/lat/26/lon/52/dist/800",p:d=>({c:(d.ac||[]).length,s:"adsb.lol"})},
+    {u:"https://opendata.adsb.fi/api/v2/lat/26/lon/52/dist/800",p:d=>({c:(d.aircraft||d.ac||[]).length,s:"adsb.fi"})},
+  ];
+  for(const src of srcs){
+    try{
+      const r=await fetch(src.u,{signal:AbortSignal.timeout(6000)});
+      if(!r.ok)continue;
+      const d=await r.json();
+      const {c,s}=src.p(d);
+      if(!c)continue;
+      document.getElementById("lc").textContent=c;
+      document.getElementById("ls").textContent=s;
+      document.getElementById("n1").textContent=c;
+      return;
+    }catch(e){continue;}
+  }
+}
+live();setInterval(live,20000);
+
+const obs=new IntersectionObserver(es=>{es.forEach(e=>{if(e.isInte
