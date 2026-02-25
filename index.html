@@ -217,11 +217,14 @@ footer{border-top:1px solid var(--bd);padding:28px 6%;display:flex;align-items:c
         <div class="pc-desc">لكل مهتم بالطيران</div>
         <ul class="pc-feats">
           <li>خريطة حية بيانات حقيقية</li>
-          <li>تفاصيل كل طائرة</li>
           <li>كشف العسكري والطوارئ</li>
+          <li>تفاصيل الطائرة الأساسية</li>
           <li>8 مناطق مراقبة</li>
+          <li class="no">صور الطائرات</li>
           <li class="no">قائمة مراقبة ICAO</li>
           <li class="no">Geofencing</li>
+          <li class="no">قياس المسافة</li>
+          <li class="no">سجل الرحلات وإحصاءات</li>
         </ul>
         <a href="app.html" class="pc-btn out">ابدأ مجاناً</a>
       </div>
@@ -232,10 +235,11 @@ footer{border-top:1px solid var(--bd);padding:28px 6%;display:flex;align-items:c
         <div class="pc-desc">للمهتمين الجادين</div>
         <ul class="pc-feats">
           <li>كل ميزات المجاني</li>
+          <li>صور الطائرات عند الضغط</li>
           <li>قائمة مراقبة ICAO</li>
           <li>Geofencing وتنبيهات</li>
           <li>قياس المسافة</li>
-          <li>تصدير CSV</li>
+          <li>سجل الرحلات + تصدير CSV</li>
           <li>إحصاءات متقدمة</li>
         </ul>
         <a href="auth.html" class="pc-btn sol">اشترك الآن</a>
@@ -252,7 +256,7 @@ footer{border-top:1px solid var(--bd);padding:28px 6%;display:flex;align-items:c
           <li>دعم فني مخصص</li>
           <li>نشر خاص</li>
         </ul>
-        <a href="mailto:info@aerowatch.app" class="pc-btn out">تواصل معنا</a>
+        <a href="/cdn-cgi/l/email-protection#99f0f7fff6d9f8fcebf6eef8edfaf1b7f8e9e9" class="pc-btn out">تواصل معنا</a>
       </div>
     </div>
   </div>
@@ -265,7 +269,7 @@ footer{border-top:1px solid var(--bd);padding:28px 6%;display:flex;align-items:c
     <div class="sec-desc">جرّب AeroWatch مجاناً — لا تسجيل، لا بطاقة</div>
     <div class="btns">
       <a href="app.html" class="btn-main">🛰️ ابدأ المراقبة الآن</a>
-      <a href="mailto:info@aerowatch.app" class="btn-out">📧 تواصل معنا</a>
+      <a href="/cdn-cgi/l/email-protection#51383f373e113034233e26302532397f302121" class="btn-out">📧 تواصل معنا</a>
     </div>
   </div>
 </section>
@@ -287,7 +291,7 @@ footer{border-top:1px solid var(--bd);padding:28px 6%;display:flex;align-items:c
   <div class="lb">المصدر: <b id="ls">—</b></div>
 </div>
 
-<script>
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
 async function live(){
   const srcs=[
     {u:"https://api.adsb.lol/v2/lat/26/lon/52/dist/800",p:d=>({c:(d.ac||[]).length,s:"adsb.lol"})},
@@ -301,14 +305,4 @@ async function live(){
       const{c,s}=src.p(d);
       if(!c)continue;
       document.getElementById("lc").textContent=c;
-      document.getElementById("ls").textContent=s;
-      document.getElementById("n1").textContent=c;
-      return;
-    }catch(e){continue;}
-  }
-}
-live();
-setInterval(live,20000);
-</script>
-</body>
-</html>
+      document.g
