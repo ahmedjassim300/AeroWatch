@@ -205,7 +205,7 @@ body.theme-mil{--bg:#060a04;--sf:#0a100a;--sf2:#0d150a;--bd:#1a2e14;--ac:#4aff40
       <path d="M16 8 L18.5 13 L25 13.5 L21 17 L22.5 24 L16 21 L9.5 24 L11 17 L7 13.5 L13.5 13 Z" fill="#00c8f0" opacity=".85"/>
       <circle cx="16" cy="16" r="2.2" fill="#00c8f0"/>
     </svg>
-    <div class="logo-t">Sky<span>Watch</span> <span style="font-size:10px;color:var(--dim)">Pro</span></div>
+    <div class="logo-t">Aero<span>Watch</span></div>
   </div>
   <div class="hstats">
     <div class="stat"><div class="sn" id="st0" style="color:var(--ac)">—</div><div class="sl">إجمالي</div></div>
@@ -228,9 +228,13 @@ body.theme-mil{--bg:#060a04;--sf:#0a100a;--sf2:#0d150a;--bd:#1a2e14;--ac:#4aff40
   <div id="map">
     <canvas id="heatCanvas"></canvas>
     <div id="load"><div class="sp"></div><div class="lt">جارٍ تحميل البيانات...</div></div>
+    <!-- بانر الباقة -->
+    <div id="planBanner" style="position:absolute;bottom:50px;left:50%;transform:translateX(-50%);z-index:600;background:rgba(5,14,22,.95);border:1px solid var(--bd);border-radius:8px;padding:8px 16px;font-size:11px;color:var(--dim);display:none;white-space:nowrap;backdrop-filter:blur(10px)">
+      🔒 الباقة المجانية — بدون Geofencing أو ICAO · <a href="index.html#pricing" style="color:var(--ac);text-decoration:none;font-weight:700">ترقية للاحترافي ←</a>
+    </div>
     <div class="map-tools">
       <div class="mt-btn" onclick="toggleCircleMode(this)" id="circleBtn" title="رسم دائرة مراقبة">🎯</div>
-      <div class="mt-btn" onclick="toggleDistMode(this)" id="distBtn" title="قياس المسافة">📏</div>
+      <div class="mt-btn" onclick="isPro()?toggleDistMode(this):showUpgradePrompt('قياس المسافة')" id="distBtn" title="قياس المسافة">📏</div>
       <div class="mt-btn" onclick="printMap()" title="طباعة الخريطة">🖨️</div>
       <div class="mt-btn" onclick="saveFav()" title="حفظ موقع مفضل">📌</div>
     </div>
@@ -271,10 +275,10 @@ body.theme-mil{--bg:#060a04;--sf:#0a100a;--sf2:#0d150a;--bd:#1a2e14;--ac:#4aff40
       <div class="mt-btn" onclick="openCtrl('filters')" title="تصفية">🔽</div>
       <div class="mt-btn" onclick="openCtrl('alert')" title="تنبيه طراز">🔔</div>
       <div class="mt-btn" onclick="openCtrl('region')" title="المنطقة">🌍</div>
-      <div class="mt-btn" onclick="openCtrl('watch')" title="مراقبة ICAO">👁️</div>
-      <div class="mt-btn" onclick="openCtrl('log')" title="سجل الرحلات">📋</div>
-      <div class="mt-btn" onclick="openCtrl('stats')" title="إحصاءات">📊</div>
-      <div class="mt-btn" onclick="openCtrl('fav')" title="مفضلة">📌</div>
+      <div class="mt-btn" onclick="isPro()?openCtrl('watch'):showUpgradePrompt('قائمة مراقبة ICAO')" title="مراقبة ICAO 🔒">👁️</div>
+      <div class="mt-btn" onclick="isPro()?openCtrl('log'):showUpgradePrompt('سجل الرحلات')" title="سجل الرحلات">📋</div>
+      <div class="mt-btn" onclick="isPro()?openCtrl('stats'):showUpgradePrompt('إحصاءات')" title="إحصاءات">📊</div>
+      <div class="mt-btn" onclick="isPro()?openCtrl('fav'):showUpgradePrompt('مفضلة')" title="مفضلة">📌</div>
       <div class="mt-btn" onclick="toggleCircleMode(this)" id="circleBtn" title="دائرة مراقبة">🎯</div>
       <div class="mt-btn" onclick="toggleDistMode(this)" id="distBtn" title="قياس مسافة">📏</div>
       <div class="mt-btn" onclick="printMap()" title="طباعة">🖨️</div>
@@ -328,6 +332,46 @@ body.theme-mil{--bg:#060a04;--sf:#0a100a;--sf2:#0d150a;--bd:#1a2e14;--ac:#4aff40
 
 <script>
 var WORKER = "https://red-snow-0316.ahmedjassim300.workers.dev";
+
+// ═══ PLAN SYSTEM ═══
+var USER = (function(){try{var u=JSON.parse(localStorage.getItem("aw_user")||"{}");return u;}catch(e){return{};}})();
+var PLAN = USER.plan || "guest"; // free, pro, guest
+
+
+
+// Aircraft images by model type
+var AC_IMAGES = {
+  "B77W":"https://upload.wikimedia.org/wikipedia/commons/thumb/a/a7/Saudi_Airlines_Boeing_777-300ER.jpg/640px-Saudi_Airlines_Boeing_777-300ER.jpg",
+  "B789":"https://upload.wikimedia.org/wikipedia/commons/thumb/1/10/Emirates_Boeing_787-9_Dreamliner.jpg/640px-Emirates_Boeing_787-9_Dreamliner.jpg",
+  "B738":"https://upload.wikimedia.org/wikipedia/commons/thumb/4/48/Flydubai_Boeing_737-800.jpg/640px-Flydubai_Boeing_737-800.jpg",
+  "A388":"https://upload.wikimedia.org/wikipedia/commons/thumb/0/09/Emirates_A380_at_LAX_%28cropped%29.jpg/640px-Emirates_A380_at_LAX_%28cropped%29.jpg",
+  "A359":"https://upload.wikimedia.org/wikipedia/commons/thumb/e/e4/Qatar_Airways_Airbus_A350-900.jpg/640px-Qatar_Airways_Airbus_A350-900.jpg",
+  "A320":"https://upload.wikimedia.org/wikipedia/commons/thumb/2/29/Air_Arabia_A320.jpg/640px-Air_Arabia_A320.jpg",
+  "A321":"https://upload.wikimedia.org/wikipedia/commons/thumb/6/6d/IndiGo_Airbus_A321neo.jpg/640px-IndiGo_Airbus_A321neo.jpg",
+  "C17":"https://upload.wikimedia.org/wikipedia/commons/thumb/5/54/C-17_Globemaster_III.jpg/640px-C-17_Globemaster_III.jpg",
+  "F16":"https://upload.wikimedia.org/wikipedia/commons/thumb/c/c9/F-16_June_2008.jpg/640px-F-16_June_2008.jpg",
+  "F15":"https://upload.wikimedia.org/wikipedia/commons/thumb/f/f6/F-15_MSIP_II.jpg/640px-F-15_MSIP_II.jpg",
+  "H60":"https://upload.wikimedia.org/wikipedia/commons/thumb/5/55/UH-60_Blackhawk.jpg/640px-UH-60_Blackhawk.jpg",
+  "GLF6":"https://upload.wikimedia.org/wikipedia/commons/thumb/6/6e/Gulfstream_G650.jpg/640px-Gulfstream_G650.jpg",
+  "B744":"https://upload.wikimedia.org/wikipedia/commons/thumb/7/72/B744_Saudia.jpg/640px-B744_Saudia.jpg",
+  "default_civil":"https://upload.wikimedia.org/wikipedia/commons/thumb/e/e7/Airbus_A320_Etihad_Airways.jpg/640px-Airbus_A320_Etihad_Airways.jpg",
+  "default_military":"https://upload.wikimedia.org/wikipedia/commons/thumb/5/54/C-17_Globemaster_III.jpg/640px-C-17_Globemaster_III.jpg",
+  "default_helicopter":"https://upload.wikimedia.org/wikipedia/commons/thumb/5/55/UH-60_Blackhawk.jpg/640px-UH-60_Blackhawk.jpg"
+};
+
+function getAcImageUrl(model, type) {
+  if(model && AC_IMAGES[model]) return AC_IMAGES[model];
+  if(type === "military") return AC_IMAGES["default_military"];
+  if(type === "helicopter") return AC_IMAGES["default_helicopter"];
+  return AC_IMAGES["default_civil"];
+}
+
+function isPro(){ return PLAN === "pro" || PLAN === "enterprise"; }
+
+function showUpgradePrompt(feature){
+  var msg = "🔒 هذه الميزة متاحة في الباقة الاحترافية\n\n✅ " + feature + "\n\nيمكنك الترقية مقابل 19$/شهر فقط";
+  if(confirm(msg + "\n\nهل تريد الانتقال لصفحة الباقات؟")) window.location.href="index.html#pricing";
+}
 
 var REGIONS = {
   world:        {lat:30,  lon:20,  zoom:2},
@@ -406,15 +450,33 @@ var seenEmergency=new Set();
 // ═══ ICONS ═══
 function mkIcon(type,track,isEmg){
   var c=isEmg?"#ff6000":COLORS[type],r=track||0;
-  var glow=isEmg?"filter:drop-shadow(0 0 6px #ff6000)":(type==="emergency"?"filter:drop-shadow(0 0 6px #ff6000)":"");
+  var glow=isEmg?"filter:drop-shadow(0 0 8px #ff6000);":"";
   var body;
   if(type==="helicopter"){
-    body="<g transform='rotate("+r+",12,12)'><ellipse cx='12' cy='12' rx='3' ry='5' fill='"+c+"'/><line x1='2' y1='12' x2='22' y2='12' stroke='"+c+"' stroke-width='2' stroke-linecap='round'/></g>";
-  }else{
-    body="<g transform='rotate("+(r-90)+",12,12)'><path d='M12 3 L14.5 9 L21 9.5 L17 13.5 L18.5 21 L12 17.5 L5.5 21 L7 13.5 L3 9.5 L9.5 9 Z' fill='"+c+"'/></g>";
+    // شكل حوامة
+    body="<g transform='rotate("+r+",12,12)'>"
+      +"<rect x='11' y='7' width='2' height='10' rx='1' fill='"+c+"'/>"
+      +"<rect x='4' y='10' width='16' height='2' rx='1' fill='"+c+"'/>"
+      +"<rect x='4' y='6' width='16' height='1.5' rx='.75' fill='"+c+"' opacity='.6'/>"
+      +"<circle cx='12' cy='12' r='2' fill='"+c+"'/>"
+      +"</g>";
+  } else if(type==="military"){
+    // شكل طائرة عسكرية مقاتلة
+    body="<g transform='rotate("+(r)+",12,12)'>"
+      +"<path d='M12 2 L14 8 L22 10 L14 12 L15 20 L12 18 L9 20 L10 12 L2 10 L10 8 Z' fill='"+c+"'/>"
+      +"<path d='M12 2 L12 18' stroke='rgba(0,0,0,.2)' stroke-width='.5'/>"
+      +"</g>";
+  } else {
+    // شكل طائرة مدنية حقيقية
+    body="<g transform='rotate("+(r)+",12,12)'>"
+      +"<path d='M12 2 L13.5 7 L20 8.5 L13.5 10 L14.5 14 L18 14.5 L18 16 L14 15.5 L13 19 L12 20 L11 19 L10 15.5 L6 16 L6 14.5 L9.5 14 L10.5 10 L4 8.5 L10.5 7 Z' fill='"+c+"'/>"
+      +"</g>";
   }
-  var svg="<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' style='"+glow+"'><circle cx='12' cy='12' r='11' fill='none' stroke='"+c+"' stroke-width='1' opacity='.2'/>"+body+"</svg>";
-  return L.divIcon({html:svg,className:"",iconSize:[24,24],iconAnchor:[12,12]});
+  var pulse = isEmg ? "<circle cx='12' cy='12' r='11' fill='none' stroke='#ff6000' stroke-width='1.5' opacity='.5'><animate attributeName='r' from='10' to='14' dur='1s' repeatCount='indefinite'/><animate attributeName='opacity' from='.8' to='0' dur='1s' repeatCount='indefinite'/></circle>" : "";
+  var svg="<svg xmlns='http://www.w3.org/2000/svg' width='28' height='28' viewBox='0 0 24 24' style='"+glow+"'>"
+    +"<circle cx='12' cy='12' r='11' fill='rgba(0,0,0,.3)' stroke='"+c+"' stroke-width='.5' opacity='.3'/>"
+    +pulse+body+"</svg>";
+  return L.divIcon({html:svg,className:"",iconSize:[28,28],iconAnchor:[14,14]});
 }
 
 // ═══ HELPERS ═══
@@ -452,7 +514,7 @@ function showDetail(a){
   var modelHtml=modelCardHtml(modelInfo,a.model);
   var flag=getFlag(a.country);
   document.getElementById("dInner").innerHTML=
-    "<div class='dh'><span>تفاصيل الطائرة</span><span class='cx' onclick='closeDetail()'>×</span></div>"+
+    "<div class='dh'><span>تفاصيل الطائرة</span><span class='cx' onclick='closeDetail()'>×</span></div>"+""+( isPro() ? "<div style='position:relative;height:110px;overflow:hidden;background:#04080e'>"+"<img src='"+getAcImageUrl(a.model,a.type)+"' style='width:100%;height:110px;object-fit:cover;opacity:.75' onerror='this.style.display=\"none\"'/>"+"<div style='position:absolute;inset:0;background:linear-gradient(transparent,rgba(2,6,9,.9))'/>"+"<div style='position:absolute;bottom:8px;right:10px;font-size:10px;color:var(--ac)'>"+(a.model||"")+"</div>"+"</div>" : "" )+
     airlineHtml+
     "<button class='track-btn"+(isTracked?" active":"")+"' onclick='toggleTrack(\""+a.hex+"\")'>"+
     (isTracked?"⏹ إيقاف التتبع":"📍 تتبع مسار الطائرة")+"</button>"+
@@ -633,6 +695,9 @@ function processRaw(rawArr,srcName){
   refreshMarkers();renderList();renderWatchList();renderTrackedList();
   updateZoneList();
   drawHeatmap();
+  // بانر الباقة المجانية
+  var banner=document.getElementById("planBanner");
+  if(banner){banner.style.display=isPro()?"none":"block";}
 }
 
 // ═══ LAYERS ═══
@@ -844,7 +909,7 @@ var flightLog=[],seenInLog=new Set();
 function timeStr(){var d=new Date();return String(d.getUTCHours()).padStart(2,"0")+":"+String(d.getUTCMinutes()).padStart(2,"0");}
 function updateLog(ac){Object.values(ac).forEach(function(a){if(!seenInLog.has(a.hex)){seenInLog.add(a.hex);flightLog.unshift({time:timeStr(),hex:a.hex,cs:a.cs,country:a.country,model:a.model,type:a.type,alt:a.alt,spd:a.spd});if(flightLog.length>500)flightLog.pop();}});renderLog();}
 function renderLog(){var el=document.getElementById("logListEl");if(!el)return;el.innerHTML="";var cnt=document.getElementById("logCount");if(cnt)cnt.textContent=flightLog.length;flightLog.slice(0,100).forEach(function(e){var c=COLORS[e.type]||"#888";var d=document.createElement("div");d.className="log-item";d.innerHTML="<div style='display:flex;justify-content:space-between'><span style='font-family:Share Tech Mono,monospace;font-size:11px;font-weight:700;color:"+c+"'>"+(e.cs||e.hex.toUpperCase())+"</span><span class='log-time'>"+e.time+"</span></div><div style='color:var(--dim);font-size:9px'>"+(e.country||"")+(e.model?" · "+e.model:"")+"</div>";el.appendChild(d);});}
-function exportCSV(){var rows=["\uFEFFالوقت,ICAO,رقم الرحلة,الدولة,الطراز,النوع,الارتفاع,السرعة"];flightLog.forEach(function(e){rows.push([e.time,e.hex,(e.cs||""),(e.country||""),(e.model||""),e.type,(e.alt||""),(e.spd||"")].join(","));});var blob=new Blob([rows.join("\n")],{type:"text/csv;charset=utf-8"});var a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="skywatch_"+new Date().toISOString().slice(0,10)+".csv";a.click();}
+function exportCSV(){var rows=["\uFEFFالوقت,ICAO,رقم الرحلة,الدولة,الطراز,النوع,الارتفاع,السرعة"];flightLog.forEach(function(e){rows.push([e.time,e.hex,(e.cs||""),(e.country||""),(e.model||""),e.type,(e.alt||""),(e.spd||"")].join(","));});var blob=new Blob([rows.join("\n")],{type:"text/csv;charset=utf-8"});var a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="aerowatch_"+new Date().toISOString().slice(0,10)+".csv";a.click();}
 
 // ═══ CHART (رسم بياني + مقارنة يومية) ═══
 var chartHistory=[];var chartHistory2=[];
@@ -982,6 +1047,7 @@ function modelCardHtml(info,model){
 // ═══ CIRCLE ZONE ═══
 var circleMode=false,zoneCircle=null,zoneCenter=null,zoneRadius=150;
 function toggleCircleMode(btn){
+  if(!isPro()){showUpgradePrompt("دائرة Geofencing — مراقبة منطقة محددة");return;}
   circleMode=!circleMode;
   btn.classList.toggle("active",circleMode);
   if(!circleMode){if(zoneCircle){map.removeLayer(zoneCircle);zoneCircle=null;}document.getElementById("zoneListEl").textContent="لم يتم رسم دائرة بعد";return;}
@@ -1139,7 +1205,8 @@ async function update(){
 }
 
 function startTimer(){
-  if(timer)clearInterval(timer);cd=15;
+  if(timer)clearInterval(timer);
+  cd=15;
   timer=setInterval(function(){cd--;document.getElementById("cdTxt").textContent=cd+"s";if(cd<=0){cd=15;update();}},1000);
 }
 
