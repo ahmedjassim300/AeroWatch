@@ -286,8 +286,8 @@ body.theme-mil{--bg:#060a04;--sf:#0a100a;--sf2:#0d150a;--bd:#1a2e14;--ac:#4aff40
     <!-- عناصر مخفية -->
     <div style="display:none">
       <select id="regSel" onchange="changeRegion()">
-        <option value="world">العالم كله</option>
-        <option value="gulf" selected>الخليج العربي</option>
+        <option value="world" selected>العالم كله</option>
+        <option value="gulf">الخليج العربي</option>
         <option value="saudi">المملكة العربية السعودية</option>
         <option value="middleeast">الشرق الأوسط</option>
         <option value="levant">بلاد الشام والعراق</option>
@@ -383,7 +383,7 @@ var REGIONS = {
   northamerica: {lat:45,  lon:-93, zoom:4},
   eastasia:     {lat:35,  lon:120, zoom:5}
 };
-var curReg = "gulf";
+var curReg = "world";
 
 // ═══ MILITARY DETECTION ═══
 var MIL_CS = ["RCH","CNV","DUKE","VIPER","EAGLE","HAWK","GHOST","MAGIC","REACH","SPAR","SAM","IRON","BONE","WAR","GRIM","WOLF","TIGER","KING","SWORD","RSAF","RSNF","COBRA","TALON","RAVEN","FALCON"];
@@ -427,7 +427,7 @@ function norm(r){
 }
 
 // ═══ MAP ═══
-var R0=REGIONS.gulf;
+var R0=REGIONS.world;
 var map=L.map("map",{center:[R0.lat,R0.lon],zoom:R0.zoom,zoomControl:false,attributionControl:false});
 L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom:19}).addTo(map);
 L.control.zoom({position:"bottomleft"}).addTo(map);
