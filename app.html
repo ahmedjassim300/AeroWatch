@@ -1131,7 +1131,7 @@ async function update(){
   try{
     // Worker يدمج adsb.lol + adsb.fi + OpenSky بالتوازي
     var url = WORKER + "/?region=" + curReg;
-    var resp = await fetch(url, {signal: AbortSignal.timeout(12000)});
+    var resp = await fetch(url, {signal: AbortSignal.timeout(20000)});
     if(!resp.ok) throw new Error("worker " + resp.status);
     var data = await resp.json();
     var ac = data.ac || [];
