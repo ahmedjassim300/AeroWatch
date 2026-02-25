@@ -1128,56 +1128,31 @@ function printMap(){window.print();}
 
 // ═══ FETCH ═══
 async function update(){
-  var reg = REGIONS[curReg];
-  var merged = new Map();
-  var sources = [];
-
-  // جلب Worker (adsb.lol + adsb.fi) + OpenSky مباشرة بالتوازي
-  var workerPromise = fetch(WORKER + "/?region=" + curReg, {signal: AbortSignal.timeout(12000)})
-    .then(r => r.json())
-    .then(d => {
-      (d.ac||[]).forEach(a => { if(a.hex && !merged.has(a.hex)) merged.set(a.hex, a); });
-      if(d.source) sources.push(d.source);
-    }).catch(() => {});
-
-  // OpenSky مباشرة من المتصفح مع بيانات الحساب
-  var deg = 8;
-  var lamin = (reg.lat - deg).toFixed(2);
-  var lomin = (reg.lon - deg*1.3).toFixed(2);
-  var lamax = (reg.lat + deg).toFixed(2);
-  var lomax = (reg.lon + deg*1.3).toFixed(2);
-  var osUrl = "https://opensky-network.org/api/states/all?lamin="+lamin+"&lomin="+lomin+"&lamax="+lamax+"&lomax="+lomax;
-  var osPromise = fetch(osUrl, {
-    headers: { "Authorization": "Basic " + btoa("ahmedjassim300:Asd3223112") },
-    signal: AbortSignal.timeout(20000)
-  }).then(r => r.ok ? r.json() : null)
-    .then(d => {
-      if(!d || !d.states) return;
-      d.states.forEach(s => {
-        if(!s[5]||!s[6]) return;
-        var hex = (s[0]||"").trim().toLowerCase();
-        if(!hex || merged.has(hex)) return;
-        merged.set(hex, {
-          hex, flight:(s[1]||"").trim(), lat:s[6], lon:s[5],
-          alt_baro: s[7] ? Math.round(s[7]*3.281) : null,
-          gs: s[9] ? Math.round(s[9]*1.944) : null,
-          track: s[10],
-          baro_rate: s[11] ? Math.round(s[11]*196.85) : null,
-          squawk: s[14], r_country: s[2], category: 0
-        });
-      });
-      sources.push("OpenSky");
-    }).catch(() => {});
-
-  // انتظر كليهما
-  await Promise.allSettled([workerPromise, osPromise]);
-
-  var ac = Array.from(merged.values());
-  if(ac.length){
-    processRaw(ac, "✅ " + (sources.join("+")||"—"));
+  try{
+    var resp = await fetch(WORKER + "/?region=" + curReg, {signal: AbortSignal.timeout(15000)});
+    if(!resp.ok) throw new Error("worker " + resp.status);
+    var data = await resp.json();
+    var ac = data.ac || [];
+    if(!Array.isArray(ac) || !ac.length) throw new Error("empty");
+    processRaw(ac, "✅ " + (data.source || "—"));
     document.getElementById("cDot").className = "ok";
-    document.getElementById("cTxt").textContent = "✅ " + (sources.join("+")||"—");
-  } else {
+    document.getElementById("cTxt").textContent = "✅ " + (data.source || "—");
+  } catch(e) {
+    // fallback مباشر
+    try{
+      var reg = REGIONS[curReg];
+      var dist = curReg === "world" ? 5000 : 1000;
+      var r = await fetch("https://api.adsb.lol/v2/lat/"+reg.lat+"/lon/"+reg.lon+"/dist/"+dist, {signal: AbortSignal.timeout(10000)});
+      var d = await r.json();
+      var ac2 = d.ac || [];
+      if(ac2.length){
+        processRaw(ac2, "✅ adsb.lol");
+        document.getElementById("cDot").className = "ok";
+        document.getElementById("cTxt").textContent = "✅ adsb.lol";
+        document.getElementById("load").classList.add("h");
+        return;
+      }
+    } catch(e2){}
     document.getElementById("cDot").className = "wa";
     document.getElementById("cTxt").textContent = "⚠️ لا يوجد اتصال";
   }
